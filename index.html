@@ -445,6 +445,8 @@ body.lock { overflow: hidden; }
 .ct-b.out label { display: block; font-size: 11px; font-weight: 600; opacity: .85; margin-bottom: 1px; }
 .ct-b.out input { width: 100%; border: 0; background: transparent; color: #fff; font: 400 15px/1.3 inherit; font-family: inherit; padding: 2px 0; outline: none; }
 .ct-b.out input::placeholder { color: rgba(255,255,255,.62); }
+.ct-b.out textarea { width: 100%; border: 0; background: transparent; color: #fff; font: 400 15px/1.35 inherit; font-family: inherit; padding: 2px 0; outline: none; resize: none; display: block; }
+.ct-b.out textarea::placeholder { color: rgba(255,255,255,.62); }
 .ct-b.out:focus-within { box-shadow: 0 0 0 2px rgba(155,48,64,.3); }
 .ct-note { align-self: flex-end; max-width: 82%; margin-top: -4px; padding-right: 6px; font-size: 11px; color: #8a8588; text-align: right; }
 .ct-b.err { align-self: flex-start; background: #FBE3E6; color: #8b2031; font-size: 13px; }
@@ -1648,28 +1650,28 @@ window.PatModal = (function () {
       '<div class="ct-hd"><button class="bk" type="button" id="ctBk">‹ Back</button><div class="who"><img src="assets/memoji-hello.webp" alt=""><b>Pat</b><small>iMessage</small></div><span></span></div>' +
       '<form id="ctForm" novalidate style="display:flex;flex-direction:column;flex:1;min-height:0"><div class="ct-body" id="ctBody"><div class="ct-ts" id="ctTs"></div>' +
       '<div class="ct-b in">hi!! you found my phone 🩷</div>' +
-      '<div class="ct-b in">drop your name and email and i’ll message you when i can. i read every single one myself.</div>' +
+      '<div class="ct-b in">drop your name, a message and your email, and i’ll get back to you when i can. i read every single one myself.</div>' +
       '<div class="ct-b out" id="ctN"><label for="ctName">Name</label><input id="ctName" type="text" maxlength="60" placeholder="your name…" autocomplete="name" required></div>' +
-      '<div class="ct-b out" id="ctE"><label for="ctEmail">Email (optional)</label><input id="ctEmail" type="email" inputmode="email" maxlength="254" placeholder="your email (optional)…" autocomplete="email"></div><div class="ct-note">optional. just so we can stay in touch and connect. never shown, never shared.</div>' +
+      '<div class="ct-b out" id="ctM"><label for="ctText">Message (optional)</label><textarea id="ctText" rows="3" maxlength="1000" placeholder="say hi, ask me anything…"></textarea></div><div class="ct-b out" id="ctE"><label for="ctEmail">Email (optional)</label><input id="ctEmail" type="email" inputmode="email" maxlength="254" placeholder="your email (optional)…" autocomplete="email"></div><div class="ct-note">optional. just so we can stay in touch and connect. never shown, never shared.</div>' +
       '<div id="ctMsg" aria-live="polite" style="display:flex;flex-direction:column;gap:8px"></div></div>' +
       '<div class="ct-in"><span class="plus" aria-hidden="true">+</span><div class="pill"><span>iMessage</span><button type="submit" id="ctGo" aria-label="Send">↑</button></div></div></form><div class="ct-home"></div></div>';
     q('.ct-x', ct).addEventListener('click', closeContact); q('#ctBk').addEventListener('click', closeContact);
     ct.addEventListener('click', function (e) { if (e.target === ct) closeContact(); });
     q('#ctForm').addEventListener('submit', function (e) {
       e.preventDefault();
-      var name = q('#ctName').value.trim(), email = q('#ctEmail').value.trim(), msg = q('#ctMsg'), err = '';
+      var name = q('#ctName').value.trim(), email = q('#ctEmail').value.trim(), text = q('#ctText').value.trim(), msg = q('#ctMsg'), err = '';
       if (!name) err = 'oops, what should i call you?';
       else if (email && (!EMAIL_RE.test(email) || email.length > 254)) err = 'hmm, that email doesn’t look right. try something like name@example.com, or leave it blank.';
       if (err) { msg.innerHTML = '<div class="ct-b err" role="alert">' + esc(err) + '</div>'; q(!name ? '#ctName' : '#ctEmail').focus(); q('#ctBody').scrollTop = 1e5; return; }
       var go = q('#ctGo'); go.disabled = true;
-      var rec = { name: name.slice(0, 60), email: email || '', at: new Date().toISOString() };
+      var rec = { name: name.slice(0, 60), email: email || '', text: text.slice(0, 1000), at: new Date().toISOString() };
       var done = function () {
-        q('#ctN').hidden = true; q('#ctE').hidden = true; var nn = q('.ct-note', ct); if (nn) nn.hidden = true;
-        msg.innerHTML = '<div class="ct-b out sent">' + esc(rec.name) + (rec.email ? '<br>' + esc(rec.email) : '') + '</div><div class="ct-b in">' + (rec.email ? 'got it, thank you!! talk soon 🩷' : 'hi ' + esc(rec.name) + '!! thanks for stopping by 🩷') + '</div>';
+        q('#ctN').hidden = true; q('#ctE').hidden = true; q('#ctM').hidden = true; var nn = q('.ct-note', ct); if (nn) nn.hidden = true;
+        msg.innerHTML = '<div class="ct-b out sent">' + esc(rec.name) + (rec.email ? '<br>' + esc(rec.email) : '') + '</div>' + (rec.text ? '<div class="ct-b out sent">' + esc(rec.text) + '</div>' : '') + '<div class="ct-b in">' + (rec.email ? 'got it, thank you!! talk soon 🩷' : 'hi ' + esc(rec.name) + '!! thanks for stopping by 🩷') + '</div>';
         q('#ctBody').scrollTop = 1e5;
       };
       var keep = function () { var a = []; try { a = JSON.parse(localStorage.getItem(CK)) || []; } catch (x) {} a.push(rec); try { localStorage.setItem(CK, JSON.stringify(a.slice(-50))); } catch (x) {} };
-      if (sbOn()) sbFetch('contacts', { method: 'POST', body: { name: rec.name, email: rec.email || null } }).then(done, function (er) { go.disabled = false; msg.innerHTML = '<div class="ct-b err" role="alert">' + esc((er && er.friendly) || 'couldn’t send that just now. check your connection and try again.') + '</div>'; });
+      if (sbOn()) sbFetch('contacts', { method: 'POST', body: { name: rec.name, email: rec.email || null, message: rec.text || null } }).then(done, function (er) { go.disabled = false; msg.innerHTML = '<div class="ct-b err" role="alert">' + esc((er && er.friendly) || 'couldn’t send that just now. check your connection and try again.') + '</div>'; });
       else { keep(); done(); }
     });
     ctBuilt = true;
