@@ -1,5 +1,5 @@
 -- Pat's Postcard World: postcards table (hardened).
--- Run once in Supabase > SQL Editor > New query > paste all > Run.
+-- Run once in Supabase > SQL Editor > New query > paste all > Run, then run supabase-notes-contacts.sql.
 -- Postcards stay hidden until you tick "approved" on a row in Table Editor.
 
 create table if not exists public.postcards (
@@ -29,27 +29,6 @@ create policy "anyone can send a postcard" on public.postcards
 create policy "anyone can read approved postcards" on public.postcards
   for select to anon using (approved = true);
 
--- Spam guard: max 5 postcards per connection per hour, and stop accepting
--- new ones if 300 are already waiting for your review.
-create or replace function public.postcards_guard() returns trigger
-language plpgsql security definer set search_path = public as $$
-declare ip text; h text;
-begin
-  if (select count(*) from public.postcards where approved = false) >= 300 then
-    raise exception 'Postcards are paused for a moment. Please try again later.' using errcode = 'P0001';
-  end if;
-  ip := split_part(coalesce(nullif(current_setting('request.headers', true), '')::json ->> 'x-forwarded-for', ''), ',', 1);
-  if trim(ip) <> '' then
-    h := md5('pats-postcards:' || trim(ip));
-    if (select count(*) from public.postcards where sender_hash = h and created_at > now() - interval '1 hour') >= 5 then
-      raise exception 'Too many postcards from this connection. Please try again later.' using errcode = 'P0001';
-    end if;
-    new.sender_hash := h;
-  end if;
-  return new;
-end $$;
-revoke all on function public.postcards_guard() from public, anon, authenticated;
-
-drop trigger if exists postcards_guard on public.postcards;
-create trigger postcards_guard before insert on public.postcards
-  for each row execute function public.postcards_guard();
+-- Spam guard (max 5 postcards per connection per hour, pause at 300 waiting for review)
+-- now lives in supabase-notes-contacts.sql, which uses a secret salted hash instead of md5.
+-- Run that file after this one. Do not re-add the old md5 guard here.

@@ -131,3 +131,5 @@ begin
   return new;
 end $$;
 revoke all on function public.postcards_guard() from public, anon, authenticated;
+drop trigger if exists postcards_guard on public.postcards;
+create trigger postcards_guard before insert on public.postcards for each row execute function public.postcards_guard();

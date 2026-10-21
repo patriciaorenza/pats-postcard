@@ -1503,7 +1503,11 @@ a.fl-card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(80,3
   var sbOn = function () { return !!(SB.url && SB.key); };
   function sbFetch(path, opts) {
     opts = opts || {};
-    return fetch(SB.url.replace(/\/$/, '') + '/rest/v1/' + path, { method: opts.method || 'GET', headers: { apikey: SB.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: opts.body ? JSON.stringify(opts.body) : undefined }).then(function (r) { if (!r.ok) throw new Error('sb ' + r.status); return opts.json ? r.json() : null; });
+    return fetch(SB.url.replace(/\/$/, '') + '/rest/v1/' + path, { method: opts.method || 'GET', headers: { apikey: SB.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: opts.body ? JSON.stringify(opts.body) : undefined }).then(function (r) {
+      if (r.ok) return opts.json ? r.json() : null;
+      // P0001 = a friendly message raised by our own database guard (rate limit, paused); show it as-is
+      return r.json().catch(function () { return {}; }).then(function (b) { var er = new Error('sb ' + r.status); er.friendly = b && b.code === 'P0001' && b.message ? b.message : ''; throw er; });
+    });
   }
   var remote = [];
   function hashR(id) { var h = 0; id = String(id || ''); for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0; return ((Math.abs(h) % 61) - 30) / 10; }
@@ -1520,10 +1524,11 @@ a.fl-card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(80,3
     var all = sbOn() ? remote.slice() : a;
     return all.concat(blanks(Math.max(0, 5 - all.length)));
   }
+  /* resolves only once the note is really saved; rejects (with .friendly when the database explains why) otherwise */
   function saveUser(n) {
+    if (sbOn()) return sbFetch('notes', { method: 'POST', body: { note: n.t, name: n.n === 'anon' ? null : n.n, color: n.c } }).then(function () { remote.unshift(n); });
     var a = []; try { var s = JSON.parse(localStorage.getItem(NK)); if (Array.isArray(s)) a = s; } catch (e) {}
     a.unshift(n); try { localStorage.setItem(NK, JSON.stringify(a.slice(0, 200))); } catch (e) {}
-    if (sbOn()) { remote.unshift(n); return sbFetch('notes', { method: 'POST', body: { note: n.t, name: n.n === 'anon' ? null : n.n, color: n.c } }).catch(function () {}); }
     return Promise.resolve();
   }
 
@@ -1564,10 +1569,16 @@ a.fl-card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(80,3
       var t = q('#ntText').value.trim(); if (!t) { q('#ntText').focus(); return; }
       if (isRude(t) || isRude(q('#ntName').value)) { q('#ntMsg').textContent = 'let’s keep the wall kind :) no rude words or links, please. try rephrasing.'; return; }
       var c = +(q('input[name=ntc]:checked', nt) || { value: 0 }).value;
-      saveUser({ t: t.slice(0, 280), n: (q('#ntName').value.trim() || 'anon').slice(0, 24), c: c, r: Math.round((Math.random() * 6 - 3) * 10) / 10 });
-      q('#ntText').value = ''; q('#ntCount').textContent = '0/280'; renderWall(); renderPits();
-      q('#ntMsg').textContent = 'stuck it on the wall :)'; setTimeout(function () { q('#ntMsg').textContent = 'keep it kind :) only your note and name are shown.'; }, 2600);
-      q('#ntGrid').parentNode.scrollTop = 0;
+      var go = q('#ntGo'), msg = q('#ntMsg');
+      go.disabled = true; msg.textContent = 'sticking it on…';
+      saveUser({ t: t.slice(0, 280), n: (q('#ntName').value.trim() || 'anon').slice(0, 24), c: c, r: Math.round((Math.random() * 6 - 3) * 10) / 10 }).then(function () {
+        q('#ntText').value = ''; q('#ntCount').textContent = '0/280'; renderWall(); renderPits();
+        msg.textContent = 'stuck it on the wall :)'; setTimeout(function () { msg.textContent = 'keep it kind :) only your note and name are shown.'; }, 2600);
+        q('#ntGrid').parentNode.scrollTop = 0;
+      }, function (er) {
+        // keep what they wrote so they can try again
+        msg.textContent = (er && er.friendly) || 'couldn’t stick that on just now. check your connection and try again.';
+      }).then(function () { go.disabled = false; });
     });
     ntBuilt = true;
   }
@@ -1610,7 +1621,7 @@ a.fl-card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(80,3
         q('#ctBody').scrollTop = 1e5;
       };
       var keep = function () { var a = []; try { a = JSON.parse(localStorage.getItem(CK)) || []; } catch (x) {} a.push(rec); try { localStorage.setItem(CK, JSON.stringify(a.slice(-50))); } catch (x) {} };
-      if (sbOn()) sbFetch('contacts', { method: 'POST', body: { name: rec.name, email: rec.email || null } }).then(done, function () { go.disabled = false; msg.innerHTML = '<div class="ct-b err" role="alert">couldn’t send that just now. check your connection and try again.</div>'; });
+      if (sbOn()) sbFetch('contacts', { method: 'POST', body: { name: rec.name, email: rec.email || null } }).then(done, function (er) { go.disabled = false; msg.innerHTML = '<div class="ct-b err" role="alert">' + esc((er && er.friendly) || 'couldn’t send that just now. check your connection and try again.') + '</div>'; });
       else { keep(); done(); }
     });
     ctBuilt = true;
@@ -1786,8 +1797,10 @@ a.fl-card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(80,3
     if (BAD.test(n + ' ' + m)) { out.textContent = 'Please keep it kind and link-free so it can go on the globe.'; return; }
     btn.disabled = true; out.textContent = 'Sending…';
     fetch(SB2.url + '/rest/v1/postcards', { method: 'POST', headers: { apikey: SB2.key, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ name: n.slice(0, 40), country: c, message: m.slice(0, 240) }) })
-      .then(function (r) { if (!r.ok) throw 0; out.textContent = 'Postmarked! Thank you. I’ll read it and pin it on the globe soon.'; q('#pcCard').classList.add('sent'); setTimeout(function () { q('#pcCard').classList.remove('sent'); }, 2600); q('#pcForm').reset(); q('#pcSignN').textContent = '—'; q('#pcPmC').textContent = 'YOUR PLACE'; })
-      .catch(function () { out.textContent = 'Couldn’t send just now. Please try again in a moment.'; }).then(function () { btn.disabled = false; });
+      .then(function (r) {
+        if (!r.ok) return r.json().catch(function () { return {}; }).then(function (b) { throw (b && b.code === 'P0001' && b.message) || ''; });
+        out.textContent = 'Postmarked! Thank you. I’ll read it and pin it on the globe soon.'; q('#pcCard').classList.add('sent'); setTimeout(function () { q('#pcCard').classList.remove('sent'); }, 2600); q('#pcForm').reset(); q('#pcSignN').textContent = '—'; q('#pcPmC').textContent = 'YOUR PLACE'; })
+      .catch(function (why) { out.textContent = (typeof why === 'string' && why) || 'Couldn’t send just now. Please try again in a moment.'; }).then(function () { btn.disabled = false; });
   }
   var last = 0;
   function loop(ts) {
