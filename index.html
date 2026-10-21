@@ -957,9 +957,6 @@ a.fl-card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(80,3
       </svg>
     </div>
     <div class="vig2"></div>
-<div class="splash" id="splash">
-      <p class="shoot" id="shoot"><strong aria-label="Shoot it.">Sh<svg class="bb" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="49" fill="currentColor"/><g fill="none" stroke="#FBF8F6" stroke-width="5.5" stroke-linecap="round"><path d="M50 3V97M3 50H97"/><path d="M20 15Q40 50 20 85M80 15Q60 50 80 85"/></g></svg><svg class="bb" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="49" fill="currentColor"/><g fill="none" stroke="#FBF8F6" stroke-width="5.5" stroke-linecap="round"><path d="M50 3V97M3 50H97"/><path d="M20 15Q40 50 20 85M80 15Q60 50 80 85"/></g></svg>t <em>it.</em></strong>Some things are worth <b>taking the shot</b> at.</p>
-    </div>
     <button class="n-skip" id="nSkip" type="button">Skip</button>
 </div>
 <div class="n-bar" aria-hidden="true"><i id="nBar"></i></div>
@@ -1119,7 +1116,7 @@ a.fl-card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(80,3
      up and down. The ball in A and B is part of the photo; after release a separate ball sprite flies to the hoop. */
   var PHW = 1448, PHH = 1086, RIM = { x: 1250, y: 268 }, NETB = 346;
   var P = { ax: 390, ay: 1500, stand: 1214, bx: 476, by: 235, bd: 165 };   // pose canvas anchor (feet), standing height, ball in pose B
-  var court = q('#court'), splash = q('#splash'), shoot = q('#shoot'), stage2 = q('#intro');
+  var court = q('#court');
   var prompt = { style: {} }, player = q('#player'), pA = q('#pA'), pB = q('#pB'), pC = q('#pC'), pD = q('#pD'), fly = q('#fly'), net = q('#net'), gsh = q('#gsh');
   var L2 = {};
   function layout2() {
@@ -1178,32 +1175,26 @@ a.fl-card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(80,3
     var nq = seg(p, 0.63, 0.86), swell = Math.sin(Math.PI * clamp(nq * 2.2, 0, 1));
     var nsy = 1 + 0.28 * swell * (1 - nq * 0.4), nsx = 1 - 0.1 * swell, sk = 8 * Math.sin(nq * 20) * Math.pow(1 - nq, 2) * (nq > 0 ? 1 : 0);
     net.setAttribute('transform', 'translate(1250 266.7) scale(' + nsx + ' ' + nsy + ') skewX(' + sk + ') translate(-1250 -266.7)');
-    // opening to the finale line
-    var sp = easeIO(seg(p, 0.76, 0.92));
-    var nr = net.getBoundingClientRect(), sr = stage2.getBoundingClientRect();
-    var cx = nr.left + nr.width / 2 - sr.left, cy = nr.top + nr.height * 0.6 - sr.top;
-    var maxR = Math.hypot(Math.max(cx, sr.width - cx), Math.max(cy, sr.height - cy)) + 10;
-    splash.style.clipPath = sp <= 0 ? 'circle(0px at ' + cx + 'px ' + cy + 'px)' : 'circle(' + (maxR * sp) + 'px at ' + cx + 'px ' + cy + 'px)';
-    var tt = easeO(seg(p, 0.92, 0.99));
-    shoot.style.opacity = tt; shoot.style.transform = 'translateY(' + (1 - tt) * 18 + 'px)';
   }
   var proxy = { p: 0 }, done = false;
-  window.addEventListener('resize', function () { layout2(); render(proxy.p); });
+  function onResize() { layout2(); render(proxy.p); }
+  function onKey(e) { if (e.key === 'Escape') finish(true); }
+  window.addEventListener('resize', onResize);
   render(0.23);
   function finish(fast) {
     if (done) return; done = true;
-    var out = function () { document.body.classList.remove('lock'); intro.remove(); };
+    var out = function () { gsap.killTweensOf(proxy); removeEventListener('resize', onResize); removeEventListener('keydown', onKey); document.body.classList.remove('lock'); intro.remove(); };
     if (fast) gsap.killTweensOf(proxy);
     start();
     gsap.to(intro, { opacity: 0, duration: fast ? .25 : .55, ease: 'power2.inOut', onComplete: out });
   }
   q('#nSkip').addEventListener('click', function () { finish(true); });
-  addEventListener('keydown', function (e) { if (e.key === 'Escape') finish(true); });
+  addEventListener('keydown', onKey);
   var imgs = ['court.jpg', 'pose-A.webp', 'pose-B.webp', 'pose-C.webp', 'pose-D.webp', 'flyball.webp', 'net.webp'];
   var left = imgs.length, go = false;
   function play() {
     if (go) return; go = true; proxy.p = 0.23; layout2(); render(0.23);
-    gsap.to(proxy, { p: 0.745, duration: 1.75, ease: 'none', onUpdate: function () { render(proxy.p); if (proxy.p > 0.66) finish(false); } });
+    gsap.to(proxy, { p: 0.8, duration: 1.95, ease: 'none', onUpdate: function () { render(proxy.p); if (proxy.p > 0.72) finish(false); } });  // swish, then fade into About
   }
   imgs.forEach(function (n) { var im = new Image(); im.onload = im.onerror = function () { if (--left === 0) play(); }; im.src = 'assets/' + n; });
   setTimeout(play, 2500);
