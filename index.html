@@ -937,6 +937,12 @@ a.fl-card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(80,3
 @media (hover: hover) and (max-width: 1000px) {
   .n-bi[data-side="leftsc"] .cap { right: auto; left: 0; top: auto; bottom: calc(100% + 8px); text-align: left; }
 }
+/* Globe legend: two items that wrap as whole phrases and never run under the close button */
+.gl-top p.gl-lg { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.gl-top p.gl-lg .lg-i { white-space: nowrap; }
+@media (max-width: 760px) { .gl-top p.gl-lg { padding-right: 56px; } }
+/* one close button at a time: the postcard form brings its own */
+.gl.pc-open #glX { visibility: hidden; }
 /* Room postcard row (Structure A): every room story reachable without finding the + signs */
 .rnav { background: #5B3837; padding: clamp(26px, 4vw, 44px) 0 clamp(34px, 5vw, 56px); }
 .rnav-lab { margin: 0 0 16px; text-align: center; font: 500 11.5px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: #E7B9B0; }
@@ -1750,7 +1756,7 @@ window.PatModal = (function () {
   function loadWorld(cb) { if (window.WORLD) return cb(); var s = document.createElement('script'); s.src = 'assets/world.js'; s.onload = cb; s.onerror = cb; document.head.appendChild(s); }
   function buildGlobe() {
     gl.innerHTML = '<canvas id="glC" aria-label="Interactive globe. Drag to spin."></canvas>' +
-      '<div class="gl-top"><h2 class="gl-code">print(&quot;Hello, World!&quot;)</h2><p>' + '<span class="lgd">●</span> places i’ve been &nbsp;·&nbsp; <span class="lge">✉</span> <span id="glPcLg">postcards from you</span></p><div class="gl-chips" id="glChips">' + TRIPS.map(function (t, i) { return '<button type="button" class="gl-chip" data-i="' + i + '" aria-label="' + esc(t.n) + '"><span class="fl">' + t.f + '</span><span class="nm"> ' + esc(t.n) + '</span></button>'; }).join('') + '</div></div>' +
+      '<div class="gl-top"><h2 class="gl-code">print(&quot;Hello, World!&quot;)</h2><p class="gl-lg">' + '<span class="lg-i"><span class="lgd">●</span> places i’ve been</span><span class="lg-i"><span class="lge">✉</span> <span id="glPcLg">postcards from visitors</span></span></p><div class="gl-chips" id="glChips">' + TRIPS.map(function (t, i) { return '<button type="button" class="gl-chip" data-i="' + i + '" aria-label="' + esc(t.n) + '"><span class="fl">' + t.f + '</span><span class="nm"> ' + esc(t.n) + '</span></button>'; }).join('') + '</div></div>' +
       '<div id="glPins"></div><div id="glPcPins"></div><button type="button" class="gl-pcb" id="glPcb">✉ Leave a postcard!<small>Share a travel story, a favourite memory or a must-visit place</small></button><div class="gl-hint" id="glHint">drag to spin · pinch to zoom</div>' +
       '<div class="gl-z"><button type="button" id="glIn" aria-label="Zoom in">+</button><button type="button" id="glOut" aria-label="Zoom out">−</button></div>' +
       '<div class="gl-card" id="glCard" hidden></div><div class="pc-wrap" id="glForm" hidden><div class="pc-card" id="pcCard" role="dialog" aria-label="Write a postcard"><button class="cx" type="button" aria-label="Close" id="pcX">×</button><form id="pcForm" autocomplete="off"><div class="pc-l"><label class="pc-hi" for="pcText">Dear Pat,</label><textarea id="pcText" maxlength="240" required placeholder="Share a travel story, a favourite memory or a must-visit place…"></textarea><div class="pc-sign">With love, <span id="pcSignN">—</span></div></div><div class="pc-r"><div class="pc-top"><div class="pc-pm"><svg class="pc-pmsvg" viewBox="0 0 120 120" aria-hidden="true"><defs><path id="pcPmA" d="M60 60m-44 0a44 44 0 1 1 88 0a44 44 0 1 1 -88 0"/></defs><g fill="none" stroke="#6B2229" stroke-width="1.6"><circle cx="60" cy="60" r="55"/><circle cx="60" cy="60" r="33" stroke-width="1"/></g><text font-family="IBM Plex Mono,monospace" font-size="9.5" font-weight="600" letter-spacing="2.4" fill="#6B2229"><textPath href="#pcPmA" startOffset="0">POSTCARD · FROM THE GLOBE · </textPath></text><text id="pcPmC" x="60" y="64" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9" font-weight="700" letter-spacing="1" fill="#6B2229">YOUR PLACE</text></svg><svg class="pc-wave" viewBox="0 0 120 40" aria-hidden="true"><path d="M0 8q15-8 30 0t30 0t30 0t30 0M0 18q15-8 30 0t30 0t30 0t30 0M0 28q15-8 30 0t30 0t30 0t30 0" fill="none" stroke="#6B2229" stroke-width="1.6"/></svg></div><div class="pc-stamp"><svg class="pc-stampsvg" viewBox="0 0 80 96" aria-hidden="true"><defs><mask id="pcsm"><rect width="80" height="96" fill="#fff"/><g fill="#000"><circle cx="5" cy="0" r="3.2"/><circle cx="5" cy="96" r="3.2"/><circle cx="15" cy="0" r="3.2"/><circle cx="15" cy="96" r="3.2"/><circle cx="25" cy="0" r="3.2"/><circle cx="25" cy="96" r="3.2"/><circle cx="35" cy="0" r="3.2"/><circle cx="35" cy="96" r="3.2"/><circle cx="45" cy="0" r="3.2"/><circle cx="45" cy="96" r="3.2"/><circle cx="55" cy="0" r="3.2"/><circle cx="55" cy="96" r="3.2"/><circle cx="65" cy="0" r="3.2"/><circle cx="65" cy="96" r="3.2"/><circle cx="75" cy="0" r="3.2"/><circle cx="75" cy="96" r="3.2"/><circle cx="0" cy="6" r="3.2"/><circle cx="80" cy="6" r="3.2"/><circle cx="0" cy="18" r="3.2"/><circle cx="80" cy="18" r="3.2"/><circle cx="0" cy="30" r="3.2"/><circle cx="80" cy="30" r="3.2"/><circle cx="0" cy="42" r="3.2"/><circle cx="80" cy="42" r="3.2"/><circle cx="0" cy="54" r="3.2"/><circle cx="80" cy="54" r="3.2"/><circle cx="0" cy="66" r="3.2"/><circle cx="80" cy="66" r="3.2"/><circle cx="0" cy="78" r="3.2"/><circle cx="80" cy="78" r="3.2"/><circle cx="0" cy="90" r="3.2"/><circle cx="80" cy="90" r="3.2"/></g></mask></defs><g mask="url(#pcsm)"><rect width="80" height="96" fill="#F3D2D0"/><rect x="6" y="6" width="68" height="84" fill="none" stroke="#9B3040" stroke-width="1.2"/><circle cx="40" cy="38" r="21" fill="#9B3040" fill-opacity=".1" stroke="#9B3040" stroke-width="1"/><path d="M22 40l36-12-8 14 6 14-8-4-6 10-4-12-16-4z" fill="#9B3040" transform="translate(2 -2) scale(.95)"/><text x="40" y="76" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="6.2" font-weight="600" letter-spacing="1.2" fill="#9B3040">POSTAGE</text><text x="40" y="84" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="5" letter-spacing="1" fill="#9B3040">SINGAPORE</text></g></svg></div></div><div class="pc-addr"><label for="pcName">From</label><input id="pcName" maxlength="40" required placeholder="Your name"><label for="pcCountry">Where in the world?</label><select id="pcCountry" required><option value="">Choose your country</option>' + CTRY.map(function (c) { return '<option>' + esc(c[0]) + '</option>'; }).join('') + '</select><div class="pc-to"><small>To</small>Pat<br>Singapore</div></div><input id="pcHp" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px"><button class="go" id="pcGo" type="submit">Send postcard ✈</button><div class="msg" id="pcMsg" role="status"></div></div></form></div></div><button class="ov-x" type="button" aria-label="Close globe" id="glX">×</button>';
@@ -1848,7 +1854,7 @@ window.PatModal = (function () {
         PCS = (rows || []).map(function (x, k) { var c = CTRY.filter(function (c) { return c[0] === x.country; })[0]; return c ? { n: x.name, c: x.country, m: x.message, ll: pcPos(c, k + 1) } : null; }).filter(Boolean);
         q('#glPcPins').innerHTML = PCS.map(function (p, i) { return '<button type="button" class="gl-pcp" data-p="' + i + '" aria-label="Postcard from ' + esc(p.c) + '"></button>'; }).join('');
         pcEls = qa('.gl-pcp', gl);
-        var lg = q('#glPcLg'); if (lg) lg.textContent = PCS.length ? 'postcards from you (' + PCS.length + ')' : 'postcards from you · be the first!';
+        var lg = q('#glPcLg'); if (lg) lg.textContent = PCS.length ? 'postcards from visitors (' + PCS.length + ')' : 'postcards from visitors';
       }).catch(function () {});
   }
   function placePc(cx, cy, r) { PCS.forEach(function (t, i) { var p = proj(t.ll[0], t.ll[1]), el = pcEls[i]; if (!el) return; if (p[2] > .08) { el.style.visibility = 'visible'; el.style.transform = 'translate(' + (cx + p[0] * r) + 'px,' + (cy - p[1] * r) + 'px)'; } else el.style.visibility = 'hidden'; }); }
@@ -1858,7 +1864,7 @@ window.PatModal = (function () {
     q('.cx', card).onclick = function () { card.hidden = true; cyT = .54; };
   }
   function openForm() {
-    var f = q('#glForm'); q('#glCard').hidden = true; f.hidden = false; PatModal.open(f); var m = q('#pcMsg'); if (m) m.textContent = ''; setTimeout(function () { var n = q('#pcName'); if (n) n.focus({ preventScroll: true }); }, 350);
+    var f = q('#glForm'); q('#glCard').hidden = true; f.hidden = false; gl.classList.add('pc-open'); PatModal.open(f); var m = q('#pcMsg'); if (m) m.textContent = ''; setTimeout(function () { var n = q('#pcName'); if (n) n.focus({ preventScroll: true }); }, 350);
   }
   function submitPc(e) {
     e.preventDefault(); var n = q('#pcName').value.trim(), c = q('#pcCountry').value, m = q('#pcText').value.trim(), out = q('#pcMsg'), btn = q('#pcGo');
@@ -1905,7 +1911,7 @@ window.PatModal = (function () {
     var chip = q('.gl-chip.on', gl); if (chip && chip.scrollIntoView) chip.scrollIntoView({ inline: 'center', block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
   }
   function closeForm(silent) {
-    var f = q('#glForm'); if (!f || f.hidden) return; f.hidden = true; PatModal.close(f);
+    var f = q('#glForm'); if (!f || f.hidden) return; f.hidden = true; gl.classList.remove('pc-open'); PatModal.close(f);
     if (!silent) { var b = q('#glPcb'); if (b) b.focus({ preventScroll: true }); }
   }
   function openGlobe() {
