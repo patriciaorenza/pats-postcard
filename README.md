@@ -38,6 +38,7 @@ To set up the database from scratch, run these files in the Supabase SQL Editor,
 1. `supabase-postcards.sql`
 2. `supabase-notes-contacts.sql`
 3. `supabase-contacts-message.sql`
+4. `supabase-hardening.sql`
 
 `supabase-audit.sql` is a read-only check of the tables' access rules.
 
