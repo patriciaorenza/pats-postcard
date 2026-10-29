@@ -348,7 +348,7 @@ body.lock { overflow: hidden; }
 .gl-card { position: absolute; z-index: 25; background: #FBF3F1; color: #2b121a; box-shadow: 0 20px 60px rgba(10,2,6,.6); overflow-y: auto; transition: transform .45s cubic-bezier(.2,.8,.2,1), opacity .3s; }
 .gl-card[hidden] { display: block !important; opacity: 0; pointer-events: none; }
 @media (min-width: 761px) { .gl-card { left: 24px; bottom: 24px; width: 380px; max-height: calc(100% - 190px); border-radius: 16px; } .gl-card[hidden] { transform: translateX(-30px); } }
-@media (max-width: 760px) { .gl-top { right: 14px; } .gl-top h2 { padding-right: 56px; } .gl-chips { justify-content: space-between; overflow: visible; gap: 6px; } .gl-chip { width: 42px; height: 42px; padding: 0; display: grid; place-items: center; border-radius: 50%; } .gl-chip .nm { display: none; } .gl-chip .fl { font-size: 21px; line-height: 1; } .gl-card { left: 0; right: 0; bottom: 0; max-height: 52%; border-radius: 20px 20px 0 0; padding-bottom: env(safe-area-inset-bottom, 0px); } .gl-card[hidden] { transform: translateY(40px); } .gl-z { bottom: calc(54% + 8px); } .gl-hint { display: none; } }
+@media (max-width: 760px) { .gl-top { right: 14px; } .gl-top h2 { padding-right: 56px; } .gl-chips { justify-content: flex-start; overflow-x: auto; overscroll-behavior-x: contain; gap: 6px; padding: 2px 2px 4px; } .gl-chip { flex: 0 0 auto; width: 42px; height: 42px; padding: 0; display: grid; place-items: center; border-radius: 50%; } .gl-chip .nm { display: none; } .gl-chip .fl { font-size: 21px; line-height: 1; } .gl-card { left: 0; right: 0; bottom: 0; max-height: 52%; border-radius: 20px 20px 0 0; padding-bottom: env(safe-area-inset-bottom, 0px); } .gl-card[hidden] { transform: translateY(40px); } .gl-z { bottom: calc(54% + 8px); } .gl-hint { display: none; } }
 
 .gl-pcb { position: absolute; z-index: 21; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); translate: -50% 0; display: grid; gap: 2px; justify-items: center; border: 0; border-radius: 999px; background: #FBF3F1; color: #6B2229; padding: 12px 22px; cursor: pointer; font: 500 15px/1.1 var(--font-body); box-shadow: 0 10px 30px rgba(10,2,6,.45); max-width: calc(100% - 140px); text-align: center; }
 .gl-pcb small { font: 400 11px/1.25 var(--font-body); color: #8a5a63; }
@@ -941,6 +941,10 @@ a.fl-card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(80,3
 .gl-top p.gl-lg { display: flex; flex-wrap: wrap; gap: 4px 16px; }
 .gl-top p.gl-lg .lg-i { white-space: nowrap; }
 @media (max-width: 760px) { .gl-top p.gl-lg { padding-right: 56px; } }
+/* phones: while a story card is open it covers the bottom, so the floating postcard button steps aside
+   (the card has its own 'send a postcard' button) */
+@media (max-width: 760px) { .gl.card-open .gl-pcb { visibility: hidden; } }
+.gl-card .nav { flex-wrap: wrap; }
 /* one close button at a time: the postcard form brings its own */
 .gl.pc-open #glX { visibility: hidden; }
 /* Room postcard row (Structure A): every room story reachable without finding the + signs */
@@ -1355,6 +1359,10 @@ a.fl-card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(80,3
           { x: 0, y: 0, scale: 1, opacity: 1, rotation: 0, ease: 'power2.out', duration: .36 }, i * .04);
       });
       etl.to({}, { duration: .1 });
+      // keyboard users: tabbing onto an item that is still packed scrolls to the unpacked bag, so focus never lands on something invisible
+      bis.forEach(function (b) { b.addEventListener('focus', function () {
+        if (+gsap.getProperty(b, 'opacity') < .9 && etl.scrollTrigger) { var st = etl.scrollTrigger; window.scrollTo({ top: st.end - 2, behavior: 'instant' }); st.update && st.update(); etl.progress(1); }
+      }); });
     }
     qa('.n-rv').forEach(function (el) {
       gsap.set(el, { y: 40, opacity: 0 });
@@ -1860,11 +1868,11 @@ window.PatModal = (function () {
   function placePc(cx, cy, r) { PCS.forEach(function (t, i) { var p = proj(t.ll[0], t.ll[1]), el = pcEls[i]; if (!el) return; if (p[2] > .08) { el.style.visibility = 'visible'; el.style.transform = 'translate(' + (cx + p[0] * r) + 'px,' + (cy - p[1] * r) + 'px)'; } else el.style.visibility = 'hidden'; }); }
   function showPc(i) {
     var t = PCS[i], card = q('#glCard'); if (!t) return; closeForm(true); flyTo(t.ll, Math.max(zoom, W < 761 ? 1.5 : 1.7)); cyT = W < 761 ? .32 : .54; auto = false; hint();
-    card.innerHTML = '<button class="cx" type="button" aria-label="Close card">×</button><div class="in"><div class="tag">postcard · ' + esc(t.c) + '</div><h3>' + esc(t.n) + '</h3><p>' + esc(t.m) + '</p></div>'; card.hidden = false;
-    q('.cx', card).onclick = function () { card.hidden = true; cyT = .54; };
+    card.innerHTML = '<button class="cx" type="button" aria-label="Close card">×</button><div class="in"><div class="tag">postcard · ' + esc(t.c) + '</div><h3>' + esc(t.n) + '</h3><p>' + esc(t.m) + '</p></div>'; card.hidden = false; gl.classList.add('card-open');
+    q('.cx', card).onclick = function () { hideCard(); cyT = .54; };
   }
   function openForm() {
-    var f = q('#glForm'); q('#glCard').hidden = true; f.hidden = false; gl.classList.add('pc-open'); PatModal.open(f); var m = q('#pcMsg'); if (m) m.textContent = ''; setTimeout(function () { var n = q('#pcName'); if (n) n.focus({ preventScroll: true }); }, 350);
+    var f = q('#glForm'); hideCard(); f.hidden = false; gl.classList.add('pc-open'); PatModal.open(f); var m = q('#pcMsg'); if (m) m.textContent = ''; setTimeout(function () { var n = q('#pcName'); if (n) n.focus({ preventScroll: true }); }, 350);
   }
   function submitPc(e) {
     e.preventDefault(); var n = q('#pcName').value.trim(), c = q('#pcCountry').value, m = q('#pcText').value.trim(), out = q('#pcMsg'), btn = q('#pcGo');
@@ -1904,22 +1912,28 @@ window.PatModal = (function () {
     var pics = t.ph.length ? t.ph.map(function (u) { return '<div class="pc" style="background-image:url(' + u + ')"></div>'; }).join('') : '<div class="pc"></div><div class="pc"></div><div class="pc"></div>';
     card.innerHTML = '<button class="cx" type="button" aria-label="Close card">×</button><div class="in"><div class="tag">' + (t.tag === 'home' ? 'home base' : 'pinned · ' + (i + 1) + ' of ' + TRIPS.length) + '</div><h3><i>' + t.f + '</i>' + esc(t.n) + '</h3>' +
       (t.s ? '<p>' + esc(t.s) + '</p>' : '<p class="soon">The story from this trip is coming soon: where i went, who with, and the moment i keep thinking about.</p>') +
-      '<div class="pics">' + pics + '</div><div class="nav"><button type="button" data-d="-1">← prev</button><button type="button" data-d="1">next →</button></div></div>';
-    card.hidden = false;
-    q('.cx', card).onclick = function () { card.hidden = true; sel = -1; cyT = .54; qa('.gl-pin,.gl-chip', gl).forEach(function (p) { p.classList.remove('on'); }); };
-    qa('.nav button', card).forEach(function (b) { b.onclick = function () { select((sel + +b.dataset.d + TRIPS.length) % TRIPS.length, true); }; });
-    var chip = q('.gl-chip.on', gl); if (chip && chip.scrollIntoView) chip.scrollIntoView({ inline: 'center', block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+      '<div class="pics">' + pics + '</div><div class="nav"><button type="button" data-d="-1">← prev</button><button type="button" data-d="1">next →</button><button type="button" class="pc-go">✉ send a postcard</button></div></div>';
+    card.hidden = false; gl.classList.add('card-open');
+    q('.pc-go', card).onclick = openForm;
+    q('.cx', card).onclick = function () { hideCard(); sel = -1; cyT = .54; qa('.gl-pin,.gl-chip', gl).forEach(function (p) { p.classList.remove('on'); }); };
+    qa('.nav button[data-d]', card).forEach(function (b) { b.onclick = function () { select((sel + +b.dataset.d + TRIPS.length) % TRIPS.length, true); }; });
+    var chip = q('.gl-chip.on', gl), row = q('#glChips');
+    if (chip && row) { var cr = chip.getBoundingClientRect(), rr = row.getBoundingClientRect(); row.scrollTo({ left: row.scrollLeft + (cr.left - rr.left) - (row.clientWidth - cr.width) / 2, behavior: reduce ? 'auto' : 'smooth' }); }
+    gl.scrollLeft = 0;  // scrollIntoView used to slide the whole overlay sideways on phones
   }
   function closeForm(silent) {
     var f = q('#glForm'); if (!f || f.hidden) return; f.hidden = true; gl.classList.remove('pc-open'); PatModal.close(f);
     if (!silent) { var b = q('#glPcb'); if (b) b.focus({ preventScroll: true }); }
+  }
+  function hideCard() {
+    var c = q('#glCard'); if (c) c.hidden = true; gl.classList.remove('card-open');
   }
   function openGlobe() {
     lastFocus = document.activeElement; gl.hidden = false; gl.classList.add('open'); lockOn(); PatModal.open(gl);
     var go = function () { if (!gBuilt) buildGlobe(); size(); auto = !touched; if (!raf) raf = requestAnimationFrame(loop); q('#glX').focus({ preventScroll: true }); };
     loadWorld(go);
   }
-  function closeGlobe() { closeForm(true); gl.classList.remove('open'); gl.hidden = true; PatModal.close(gl); lockOff(); if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true }); }
+  function closeGlobe() { closeForm(true); hideCard(); sel = -1; cyT = .54; qa('.gl-pin,.gl-chip', gl).forEach(function (p) { p.classList.remove('on'); }); gl.classList.remove('open'); gl.hidden = true; PatModal.close(gl); lockOff(); if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true }); }
 
   /* ================= BASKETBALL STORY ================= */
   var bb = q('#bb'), bBuilt = false, bIO = null;
