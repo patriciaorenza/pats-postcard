@@ -42,6 +42,8 @@ To set up the database from scratch, run these files in the Supabase SQL Editor,
 
 `supabase-audit.sql` is a read-only check of the tables' access rules.
 
+See [CHANGELOG.md](CHANGELOG.md) for what changed, what was fixed and what is outstanding.
+
 ---
 
 Made by Patricia Orenza · Singapore
