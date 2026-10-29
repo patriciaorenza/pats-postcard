@@ -26,9 +26,6 @@ Nothing visible changes except faster loading and link previews. Before shipping
 ### Security
 - **Browser security policy:** scripts are now allowed only from this site (`script-src 'self'`; `'unsafe-inline'` removed). This closes issue 3 from the security review.
 
-### Removed
-- The merged `intro-polish` preview branch.
-
 ---
 
 ## 2026-10-30: User-test fixes and security hardening
@@ -114,4 +111,5 @@ Found by a simulated usability test (3 personas × 9 tasks) and a security revie
 - **Professional portfolio** is only reachable inside the laptop or via an unlabelled briefcase icon.
 - **Untested on real devices:** Safari on iPhone behaviour, and whether the spoof-resistant rate limit holds under real traffic.
 - **Accepted (GitHub Pages can't set these headers):** no clickjacking protection; this site and the professional portfolio share one browser origin.
+- **Leftover branch:** the merged `intro-polish` preview branch couldn't be deleted from the editing session. Delete it on GitHub: repo → Branches → bin icon.
 - **Link previews** are cached by each platform. If an old preview shows on LinkedIn, refresh it with LinkedIn's Post Inspector.
