@@ -14,7 +14,7 @@ Database changes are listed separately under each release, because they're appli
 Nothing visible changes except faster loading and link previews. Before shipping, 13 views on desktop and mobile were compared pixel by pixel against the previous version: identical apart from invisible compression differences in the bag and logo. All earlier functional tests were rerun and pass.
 
 ### Changed
-- **Code split into files:** `css/site.css`, plus `js/01-intro.js` … `js/06-world.js`, in the original order. `index.html` went from 225 KB to 43 KB.
+- **Code split into files:** `css/site.css`, plus `js/01-intro.js` … `js/06-world.js`, in the original order. `index.html` went from 225 KB to 42 KB.
 - **CSS:** removed 214 leftover rules from earlier versions that could never apply (CSS down from 105 KB to 83 KB).
 - **Images:** `bag.png` → `bag.webp` (180 KB → 22 KB) and `logo.png` → `logo.webp` (66 KB → 38 KB). The PNGs are kept in `assets/`.
 
