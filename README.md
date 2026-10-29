@@ -21,7 +21,11 @@ This is my personal corner of the internet, a scrapbook-style site for friends, 
 
 ## How it's built
 
-- One `index.html` with plain HTML, CSS and JavaScript. There's no framework and no build step.
+- Plain HTML, CSS and JavaScript, with no framework and no build step:
+  - `index.html`: the page itself
+  - `css/site.css`: all styles
+  - `js/`: one script per part of the site, loaded in order: `01-intro`, `02-room`, `03-hero`, `04-modal` (shared pop-up helper), `05-desk` (laptop, notes wall, phone) and `06-world` (globe, postcards, basketball story)
+- The browser security policy only allows scripts from this site.
 - [GSAP](https://gsap.com/) and ScrollTrigger for animation, stored locally in `vendor/`.
 - Fonts and images are stored locally in `fonts/` and `assets/`.
 - [Supabase](https://supabase.com/) stores visitor notes, postcards and contact messages:

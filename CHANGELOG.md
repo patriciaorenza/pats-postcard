@@ -9,6 +9,28 @@ Database changes are listed separately under each release, because they're appli
 
 ---
 
+## 2026-10-30: Phase 6 tidy-up
+
+Nothing visible changes except faster loading and link previews. Before shipping, 13 views on desktop and mobile were compared pixel by pixel against the previous version: identical apart from invisible compression differences in the bag and logo. All earlier functional tests were rerun and pass.
+
+### Changed
+- **Code split into files:** `css/site.css`, plus `js/01-intro.js` … `js/06-world.js`, in the original order. `index.html` went from 225 KB to 43 KB.
+- **CSS:** removed 214 leftover rules from earlier versions that could never apply (CSS down from 105 KB to 83 KB).
+- **Images:** `bag.png` → `bag.webp` (180 KB → 22 KB) and `logo.png` → `logo.webp` (66 KB → 38 KB). The PNGs are kept in `assets/`.
+
+### Added
+- **Icons:** favicon (`favicon-32.png`) and iPhone home-screen icon (`apple-touch-icon.png`): a cream italic "P" on burgundy.
+- **Link previews** for LinkedIn, WhatsApp and others, using an image of the real hero (`og.jpg`) and the tagline.
+- **Meta description** is now the tagline, "A little postcard from my corner of the world."
+
+### Security
+- **Browser security policy:** scripts are now allowed only from this site (`script-src 'self'`; `'unsafe-inline'` removed). This closes issue 3 from the security review.
+
+### Removed
+- The merged `intro-polish` preview branch.
+
+---
+
 ## 2026-10-30: User-test fixes and security hardening
 
 Found by a simulated usability test (3 personas × 9 tasks) and a security review.
@@ -90,11 +112,6 @@ Found by a simulated usability test (3 personas × 9 tasks) and a security revie
 
 - **Placeholders:** Freelance work (3 "coming soon" cards), 8 of 10 travel stories, 4 of 5 basketball chapter photos and the Photos app are waiting for Pat's content.
 - **Professional portfolio** is only reachable inside the laptop or via an unlabelled briefcase icon.
-- **Phase 6 (not started):**
-  - Split the code into separate files and drop `'unsafe-inline'` from the browser security policy.
-  - Remove leftover CSS.
-  - Compress `bag.png` and `logo.png`.
-  - Add a favicon and Open Graph tags.
 - **Untested on real devices:** Safari on iPhone behaviour, and whether the spoof-resistant rate limit holds under real traffic.
 - **Accepted (GitHub Pages can't set these headers):** no clickjacking protection; this site and the professional portfolio share one browser origin.
-- The `intro-polish` preview branch is merged and can be deleted.
+- **Link previews** are cached by each platform. If an old preview shows on LinkedIn, refresh it with LinkedIn's Post Inspector.
